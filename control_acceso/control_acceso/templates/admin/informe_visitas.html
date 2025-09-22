@@ -1,0 +1,928 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Informe de Actividad de Visitas{% endblock %}
+
+{% block content %}
+
+{% if pdf_export %}
+    <style>
+        @page {
+            size: A4;
+            margin-top: 25mm;
+            margin-bottom: 25mm;
+            margin-left: 15mm;
+            margin-right: 15mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.4;
+            background: #fff;
+        }
+        .pdf-header {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .pdf-header-content {
+            width: 100%;
+        }
+        .pdf-logo {
+            width: 50px;
+            height: 50px;
+            float: left;
+            margin-right: 15px;
+            background: white;
+            padding: 3px;
+            border-radius: 5px;
+        }
+        .pdf-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .pdf-subtitle {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .pdf-meta-info {
+            font-size: 11px;
+            text-align: right;
+            clear: both;
+        }
+        .pdf-meta {
+            margin-bottom: 2px;
+        }
+        .content-section {
+            margin-top: 20px;
+            background: white;
+        }
+        .filtros-header {
+            background: #34495e;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 0;
+            border-radius: 5px 5px 0 0;
+        }
+        .pdf-filtros {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .filtros-grid {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .filtro-row {
+            display: table-row;
+        }
+        .filtro-label {
+            display: table-cell;
+            font-weight: bold;
+            color: #495057;
+            padding: 4px 15px 4px 0;
+            width: 25%;
+            font-size: 11px;
+        }
+        .filtro-value {
+            display: table-cell;
+            color: #333;
+            padding: 4px 0;
+            font-size: 11px;
+        }
+        .section-header {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0;
+            border-radius: 5px 5px 0 0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .table th {
+            background: #495057;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 8px 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .table td {
+            border: 1px solid #ddd;
+            padding: 6px 4px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 10px;
+        }
+        .table td.area-cell {
+            font-size: 9px;
+            text-align: left;
+            padding-left: 6px;
+            max-width: 100px;
+        }
+        .table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .img-thumbnail {
+            border: 1px solid #007bff;
+            width: 40px;
+            height: 40px;
+        }
+        .footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: -20mm;
+            height: 20mm;
+            background: #1e3c72;
+            color: white;
+            font-size: 9px;
+            text-align: center;
+            padding: 5mm;
+        }
+        .footer-content {
+            text-align: center;
+        }
+        .footer-title {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .footer-subtitle {
+            font-size: 8px;
+        }
+        .clearfix {
+            clear: both;
+        }
+    </style>
+{% endif %}
+
+{% if not pdf_export %}
+<div class="container-fluid px-0 mb-3">
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-clipboard-data fs-3 text-primary"></i>
+      <h2 class="mb-0 fw-bold" style="font-size: 2rem;">Informe de Visitas</h2>
+    </div>
+    <button class="btn btn-outline-primary btn-sm" type="button" id="toggleFiltrosBtn">
+      <i class="bi bi-funnel"></i> Filtros
+    </button>
+  </div>
+</div>
+<div class="card shadow-sm mb-4" id="filtrosCard">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-2">
+        <label for="fecha_inicio" class="form-label">Fecha desde</label>
+        <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+      </div>
+      <div class="col-md-2">
+        <label for="fecha_fin" class="form-label">Fecha hasta</label>
+        <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+      </div>
+      <div class="col-md-2">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" value="{{ request.GET.nombre }}">
+      </div>
+      <div class="col-md-2">
+        <label for="apellido" class="form-label">Apellido</label>
+        <input type="text" class="form-control" id="apellido" name="apellido" value="{{ request.GET.apellido }}">
+      </div>
+      <div class="col-md-2">
+        <label for="dni" class="form-label">DNI</label>
+        <input type="text" class="form-control" id="dni" name="dni" value="{{ request.GET.dni }}">
+      </div>
+      <div class="col-md-2">
+        <label for="tarjetavisita" class="form-label">Tarjeta</label>
+        <input type="text" class="form-control" id="tarjetavisita" name="tarjetavisita" value="{{ request.GET.tarjetavisita }}">
+      </div>
+      <div class="col-md-2">
+        <label for="sede" class="form-label">Sede</label>
+        <select class="form-select" id="sede" name="sede">
+          <option value="">Todas</option>
+          {% for s in sedes %}
+            <option value="{{ s.id }}" {% if request.GET.sede == s.id|stringformat:'s' %}selected{% endif %}>{{ s.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label for="area" class="form-label">Área</label>
+        <select class="form-select" id="area" name="area">
+          <option value="">Todas</option>
+          {% for a in areas %}
+            <option value="{{ a.id }}" {% if request.GET.area == a.id|stringformat:'s' %}selected{% endif %}>{{ a.unidad_organica }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label for="usuario" class="form-label">Usuario</label>
+        <select class="form-select" id="usuario" name="usuario">
+          <option value="">Todos</option>
+          {% for uid, first, last, username in usuarios %}
+            <option value="{{ uid }}" {% if request.GET.usuario == uid|stringformat:'s' %}selected{% endif %}>{{ first }} {{ last }} ({{ username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2 align-items-end">
+        <button type="submit" class="btn btn-primary w-100" title="Filtrar"><i class="bi bi-funnel"></i></button>
+        <a href="?" class="btn btn-secondary w-100" title="Quitar filtros"><i class="bi bi-x-circle"></i></a>
+        <button type="button" class="btn btn-secondary w-100" onclick="window.print()" title="Imprimir"><i class="bi bi-printer"></i></button>
+        <a href="?{{ request.GET.urlencode }}&export=pdf" class="btn btn-danger w-100" title="PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+      </div>
+    </form>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var filtrosCard = document.getElementById('filtrosCard');
+        var toggleBtn = document.getElementById('toggleFiltrosBtn');
+        if (filtrosCard && toggleBtn) {
+          toggleBtn.addEventListener('click', function() {
+            if (filtrosCard.style.display === 'none') {
+              filtrosCard.style.display = '';
+            } else {
+              filtrosCard.style.display = 'none';
+            }
+          });
+        }
+      });
+    </script>
+  </div>
+</div>
+<div class="subtitulo text-center mb-3">Listado de visitas registradas</div>
+{% endif %}
+
+{% if pdf_export %}
+    <!-- CONTENIDO PARA PDF -->
+    <div class="pdf-header">
+        <div class="pdf-header-content">
+            {% if logo_base64 %}
+                <img src="{{ logo_base64 }}" alt="Logo" class="pdf-logo" />
+            {% endif %}
+            <div class="pdf-title">Control de Acceso</div>
+            <div class="pdf-subtitle">Informe de Actividad de Visitas</div>
+            <div class="clearfix"></div>
+            <div class="pdf-meta-info">
+                <div class="pdf-meta">Fecha: {% now 'd/m/Y' %}</div>
+                <div class="pdf-meta">Hora: {% now 'H:i' %}</div>
+                <div class="pdf-meta">Usuario: {{ request.user.get_full_name|default:request.user.username }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        {% if request.GET %}
+        <div class="filtros-header">
+            Filtros Aplicados
+        </div>
+        <div class="pdf-filtros">
+            <div class="filtros-grid">
+                {% if request.GET.fecha_inicio %}
+                <div class="filtro-row">
+                    <div class="filtro-label">Fecha desde:</div>
+                    <div class="filtro-value">{{ request.GET.fecha_inicio }}</div>
+                </div>
+                {% endif %}
+                {% if request.GET.fecha_fin %}
+                <div class="filtro-row">
+                    <div class="filtro-label">Fecha hasta:</div>
+                    <div class="filtro-value">{{ request.GET.fecha_fin }}</div>
+                </div>
+                {% endif %}
+                {% if request.GET.nombre %}
+                <div class="filtro-row">
+                    <div class="filtro-label">Nombre:</div>
+                    <div class="filtro-value">{{ request.GET.nombre }}</div>
+                </div>
+                {% endif %}
+                {% if request.GET.apellido %}
+                <div class="filtro-row">
+                    <div class="filtro-label">Apellido:</div>
+                    <div class="filtro-value">{{ request.GET.apellido }}</div>
+                </div>
+                {% endif %}
+                {% if request.GET.dni %}
+                <div class="filtro-row">
+                    <div class="filtro-label">DNI:</div>
+                    <div class="filtro-value">{{ request.GET.dni }}</div>
+                </div>
+                {% endif %}
+                {% if request.GET.sede %}
+                <div class="filtro-row">
+                    <div class="filtro-label">Sede:</div>
+                    <div class="filtro-value">{% for s in sedes %}{% if s.id|stringformat:'s' == request.GET.sede %}{{ s.nombre }}{% endif %}{% endfor %}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="section-header">
+            Registro de Visitas
+        </div>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Sede</th>
+                    <th>Área</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Foto</th>
+                    <th>Registrado por</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for visita in visitas_pdf %}
+            <tr>
+              <td>{{ visita.fecha|date:'d/m/Y' }}</td>
+              <td>{{ visita.dni }}</td>
+              <td>{{ visita.nombre }}</td>
+              <td>{{ visita.sede }}</td>
+              <td class="area-cell">{{ visita.area }}</td>
+              <td>{{ visita.hora_entrada }}</td>
+              <td>{{ visita.hora_salida }}</td>
+              <td>
+                {% if visita.foto_base64 %}
+                  <img src="{{ visita.foto_base64 }}" alt="Foto" class="img-thumbnail" />
+                {% else %}
+                  <span style="color: #999; font-size: 9px;">Sin foto</span>
+                {% endif %}
+              </td>
+              <td>{{ visita.usuario_registro|default:'-' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9" style="text-align: center; color: #999; padding: 15px;">No hay visitas para los filtros seleccionados.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <!-- CONTENIDO PARA WEB -->
+    <div class="table-responsive rounded shadow-sm" id="tablaVisitas">
+      <table class="table table-striped align-middle table-bordered table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>DNI</th>
+            <th>Nombre</th>
+            <th>Sede</th>
+            <th>Área</th>
+            <th>Hora Entrada</th>
+            <th>Hora Salida</th>
+            <th>Foto</th>
+            <th>Usuario que registró</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for visita in visitas %}
+          <tr>
+            <td>{{ visita.fecha|date:'d/m/Y' }}</td>
+            <td>{{ visita.person.dni }}</td>
+            <td>{{ visita.person.get_full_name }}</td>
+            <td>{{ visita.sede.nombre }}</td>
+            <td>{{ visita.area.unidad_organica }}</td>
+            <td>{{ visita.hora_entrada }}</td>
+            <td>{{ visita.hora_salida|default:'-' }}</td>
+            <td>
+              {% if visita.person.photo %}
+                <img src="{% url 'get_person_photo' visita.person.id %}" alt="Foto" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+              {% else %}
+                <span class="text-muted">Sin foto</span>
+              {% endif %}
+            </td>
+            <td>{% if visita.created_by %}{{ visita.created_by.get_full_name|default:visita.created_by.username }}{% else %}-{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center">No hay visitas para los filtros seleccionados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-3">
+        <div>
+          Mostrando
+          {% if paginator.count > 0 %}
+            {{ page_obj.start_index }}-{{ page_obj.end_index }}
+          {% else %}
+            0-0
+          {% endif %}
+          de {{ paginator.count }} registros
+        </div>
+        <nav aria-label="Paginación de visitas">
+          <ul class="pagination mb-0">
+            {# Botón primera página #}
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page=1" aria-label="Primera">
+                  <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
+            {% endif %}
+            {# Botón anterior #}
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+            {# Números de página (máximo 5 alrededor de la actual) #}
+            {% for num in paginator.page_range %}
+              {% if num == 1 or num == paginator.num_pages or num == page_obj.number or num == page_obj.number|add:'-1' or num == page_obj.number|add:'-2' or num == page_obj.number|add:'1' or num == page_obj.number|add:'2' %}
+                {% if num == page_obj.number %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+              {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+            {% endfor %}
+            {# Botón siguiente #}
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+            {# Botón última página #}
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ paginator.num_pages }}" aria-label="Última">
+                  <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+            {% endif %}
+          </ul>
+          <div class="ms-3 small text-muted d-inline-block align-middle">Página {{ page_obj.number }} de {{ paginator.num_pages }}</div>
+        </nav>
+      </div>
+        </tbody>
+      </table>
+    </div>
+{% endif %}
+<style>
+  @media print {
+    @page {
+      size: A4;
+      margin-top: 25mm;
+      margin-bottom: 25mm;
+      margin-left: 15mm;
+      margin-right: 15mm;
+    }
+    
+    * {
+      visibility: hidden !important;
+    }
+    
+    #printContent, #printContent * {
+      visibility: visible !important;
+    }
+    
+    #printContent {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+    }
+    
+    body {
+      font-family: Arial, sans-serif !important;
+      color: #333 !important;
+      line-height: 1.4 !important;
+      background: #fff !important;
+    }
+    
+    .print-header {
+      background: #1e3c72 !important;
+      color: white !important;
+      padding: 15px !important;
+      margin-bottom: 20px !important;
+      text-align: center !important;
+      border-radius: 5px !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .print-header-content {
+      width: 100% !important;
+    }
+    
+    .print-logo {
+      width: 50px !important;
+      height: 50px !important;
+      float: left !important;
+      margin-right: 15px !important;
+      background: white !important;
+      padding: 3px !important;
+      border-radius: 5px !important;
+    }
+    
+    .print-title {
+      font-size: 20px !important;
+      font-weight: bold !important;
+      margin-bottom: 5px !important;
+    }
+    
+    .print-subtitle {
+      font-size: 14px !important;
+      margin-bottom: 10px !important;
+    }
+    
+    .print-meta-info {
+      font-size: 11px !important;
+      text-align: right !important;
+      clear: both !important;
+    }
+    
+    .print-meta {
+      margin-bottom: 2px !important;
+    }
+    
+    .clearfix {
+      clear: both !important;
+    }
+    
+    .content-section {
+      margin-top: 20px !important;
+      background: white !important;
+    }
+    
+    .filtros-header {
+      background: #34495e !important;
+      color: white !important;
+      padding: 8px 15px !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      margin-bottom: 0 !important;
+      border-radius: 5px 5px 0 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .print-filtros {
+      background: #f8f9fa !important;
+      padding: 15px !important;
+      margin-bottom: 20px !important;
+      border: 1px solid #ddd !important;
+      border-top: none !important;
+      border-radius: 0 0 5px 5px !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .filtros-grid {
+      display: table !important;
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+    
+    .filtro-row {
+      display: table-row !important;
+    }
+    
+    .filtro-label {
+      display: table-cell !important;
+      font-weight: bold !important;
+      color: #495057 !important;
+      padding: 4px 15px 4px 0 !important;
+      width: 25% !important;
+      font-size: 11px !important;
+    }
+    
+    .filtro-value {
+      display: table-cell !important;
+      color: #333 !important;
+      padding: 4px 0 !important;
+      font-size: 11px !important;
+    }
+    
+    .section-header {
+      background: #34495e !important;
+      color: white !important;
+      padding: 10px !important;
+      font-size: 16px !important;
+      font-weight: bold !important;
+      text-align: center !important;
+      margin-bottom: 0 !important;
+      border-radius: 5px 5px 0 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 11px !important;
+      margin: 0 !important;
+      background: #fff !important;
+      border: 1px solid #ddd !important;
+      border-top: none !important;
+      border-radius: 0 0 5px 5px !important;
+    }
+    
+    .table th {
+      background: #495057 !important;
+      color: white !important;
+      font-size: 11px !important;
+      font-weight: bold !important;
+      padding: 8px 4px !important;
+      text-align: center !important;
+      border: 1px solid #ddd !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .table td {
+      border: 1px solid #ddd !important;
+      padding: 6px 4px !important;
+      text-align: center !important;
+      vertical-align: middle !important;
+      font-size: 10px !important;
+    }
+    
+    .table td.area-cell {
+      font-size: 9px !important;
+      text-align: left !important;
+      padding-left: 6px !important;
+      max-width: 100px !important;
+    }
+    
+    .table tr:nth-child(even) {
+      background: #f8f9fa !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .img-thumbnail {
+      border: 1px solid #007bff !important;
+      width: 40px !important;
+      height: 40px !important;
+    }
+    
+    .footer {
+      position: fixed !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: -20mm !important;
+      height: 20mm !important;
+      background: #1e3c72 !important;
+      color: white !important;
+      font-size: 9px !important;
+      text-align: center !important;
+      padding: 5mm !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .footer-content {
+      text-align: center !important;
+    }
+    
+    .footer-title {
+      font-weight: bold !important;
+      margin-bottom: 2px !important;
+    }
+    
+    .footer-subtitle {
+      font-size: 8px !important;
+    }
+  }
+</style>
+
+{% if pdf_export %}
+<div class="footer">
+    <div class="footer-content">
+        <div class="footer-title">Control de Acceso - Desarrollado por Sebastian D' Agostino, Lucas Gomez, Armando Ramirez, Daniel Dziektierow</div>
+        <div class="footer-subtitle">© {% now "Y" %} Todos los derechos reservados</div>
+    </div>
+</div>
+{% endif %}
+
+{% if not pdf_export %}
+<!-- CONTENIDO PARA IMPRESIÓN -->
+<div id="printContent" style="display:none;">
+    <div class="print-header">
+        <div class="print-header-content">
+            <div class="print-logo" id="printLogo" style="display:none;">
+                <!-- Logo se insertará aquí via JavaScript -->
+            </div>
+            <div class="print-title">Control de Acceso</div>
+            <div class="print-subtitle">Informe de Actividad de Visitas</div>
+            <div class="clearfix"></div>
+            <div class="print-meta-info">
+                <div class="print-meta">Fecha: <span id="fechaInformePrint"></span></div>
+                <div class="print-meta">Hora: <span id="horaInformePrint"></span></div>
+                <div class="print-meta">Usuario: {{ request.user.get_full_name|default:request.user.username }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div id="printFiltrosSection" style="display:none;">
+            <div class="filtros-header">
+                Filtros Aplicados
+            </div>
+            <div class="print-filtros">
+                <div class="filtros-grid" id="printFiltrosGrid">
+                    <!-- Los filtros se insertarán aquí via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            Registro de Visitas
+        </div>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Sede</th>
+                    <th>Área</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Foto</th>
+                    <th>Registrado por</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody">
+                <!-- Los datos se insertarán aquí via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-title">Control de Acceso - Desarrollado por Sebastian D' Agostino, Lucas Gomez, Armando Ramirez, Daniel Dziektierow</div>
+            <div class="footer-subtitle">© {% now "Y" %} Todos los derechos reservados</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  function getFiltrosUsados() {
+    const labels = {
+      'fecha_inicio': 'Fecha desde',
+      'fecha_fin': 'Fecha hasta',
+      'nombre': 'Nombre',
+      'apellido': 'Apellido',
+      'dni': 'DNI',
+      'tarjetavisita': 'Tarjeta',
+      'sede': 'Sede',
+      'area': 'Área',
+      'usuario': 'Usuario',
+    };
+    const filtros = [];
+    const params = new URLSearchParams(window.location.search);
+    let hasFiltros = false;
+    
+    for (const [key, label] of Object.entries(labels)) {
+      const val = params.get(key);
+      if (val && val !== '') {
+        hasFiltros = true;
+        let display = val;
+        // For select fields, get the selected option text
+        if (["sede","area","usuario"].includes(key)) {
+          const el = document.getElementById(key);
+          if (el) {
+            const opt = el.options[el.selectedIndex];
+            if (opt) display = opt.text;
+          }
+        }
+        filtros.push(`
+          <div class="filtro-row">
+            <div class="filtro-label">${label}:</div>
+            <div class="filtro-value">${display}</div>
+          </div>
+        `);
+      }
+    }
+    
+    return { filtros: filtros.join(''), hasFiltros: hasFiltros };
+  }
+
+  function getVisitasData() {
+    const rows = document.querySelectorAll('#tablaVisitas tbody tr');
+    const visitasData = [];
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 9) {
+        const imgElement = cells[7].querySelector('img');
+        const imgSrc = imgElement ? imgElement.src : null;
+        
+        visitasData.push({
+          fecha: cells[0].textContent.trim(),
+          dni: cells[1].textContent.trim(),
+          nombre: cells[2].textContent.trim(),
+          sede: cells[3].textContent.trim(),
+          area: cells[4].textContent.trim(),
+          entrada: cells[5].textContent.trim(),
+          salida: cells[6].textContent.trim(),
+          foto: imgSrc,
+          usuario: cells[8].textContent.trim()
+        });
+      }
+    });
+    
+    return visitasData;
+  }
+
+  function setPrintContent() {
+    // Configurar fecha y hora
+    const now = new Date();
+    document.getElementById('fechaInformePrint').textContent = now.toLocaleDateString('es-ES');
+    document.getElementById('horaInformePrint').textContent = now.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    
+    // Configurar filtros
+    const { filtros, hasFiltros } = getFiltrosUsados();
+    const filtrosSection = document.getElementById('printFiltrosSection');
+    const filtrosGrid = document.getElementById('printFiltrosGrid');
+    
+    if (hasFiltros) {
+      filtrosGrid.innerHTML = filtros;
+      filtrosSection.style.display = 'block';
+    } else {
+      filtrosSection.style.display = 'none';
+    }
+    
+    // Configurar datos de visitas
+    const visitasData = getVisitasData();
+    const tableBody = document.getElementById('printTableBody');
+    
+    if (visitasData.length > 0) {
+      tableBody.innerHTML = visitasData.map(visita => {
+        // Formatear fecha DD/MM/AAAA si viene en formato ISO (YYYY-MM-DD)
+        let fecha = visita.fecha;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+          const [y, m, d] = fecha.split('-');
+          fecha = `${d}/${m}/${y}`;
+        }
+        return `
+        <tr>
+          <td>${fecha}</td>
+          <td>${visita.dni}</td>
+          <td>${visita.nombre}</td>
+          <td>${visita.sede}</td>
+          <td class="area-cell">${visita.area}</td>
+          <td>${visita.entrada}</td>
+          <td>${visita.salida}</td>
+          <td>
+            ${visita.foto ? `<img src="${visita.foto}" alt="Foto" class="img-thumbnail" />` : '<span style="color: #999; font-size: 9px;">Sin foto</span>'}
+          </td>
+          <td>${visita.usuario}</td>
+        </tr>
+        `;
+      }).join('');
+    } else {
+      tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999; padding: 15px;">No hay visitas para los filtros seleccionados.</td></tr>';
+    }
+    
+    // Mostrar contenido de impresión
+    document.getElementById('printContent').style.display = 'block';
+  }
+
+  function hidePrintContent() {
+    document.getElementById('printContent').style.display = 'none';
+  }
+
+  window.onbeforeprint = setPrintContent;
+  window.onafterprint = hidePrintContent;
+</script>
+{% endif %}
+{% endblock %}

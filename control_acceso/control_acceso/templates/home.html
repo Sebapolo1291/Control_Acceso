@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Control de acceso{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4" style="font-size: 2.1rem;">
+        <i class="bi bi-check-circle me-2"></i>Sistema de control de acceso
+    </h1>
+    <hr class="my-4">
+    <a class="btn btn-lg text-white me-3" href="{% url 'register_visit' %}" role="button" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-person-plus me-2"></i>Registrar visita
+    </a>
+    <a class="btn btn-lg text-white" href="{% url 'visit_list' %}" role="button" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-eye me-2"></i>Visitas activas
+    </a>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title" style="color: rgb(39, 48, 92);">Visitas activas</h5>
+                <p class="card-text display-4">{{ active_visits_count|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title" style="color: rgb(39, 48, 92);">Visitas hoy</h5>
+                <p class="card-text display-4">{{ today_visits_count|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title" style="color: rgb(39, 48, 92);">Personas registradas</h5>
+                <p class="card-text display-4">{{ people_count|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title" style="color: rgb(39, 48, 92);">Total de visitas</h5>
+                <p class="card-text display-4">{{ total_visits_count|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                Últimas visitas
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Persona</th>
+                            <th>Dni</th>
+                            <th>Sede</th>
+                            <th>Fecha</th>
+                            <th>Hora de entrada</th>
+                            <th>Hora de salida</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in recent_visits %}
+                        <tr>
+                            <td>{{ visit.person.get_full_name }}</td>
+                            <td>{{ visit.person.dni }}</td>
+                            <td>{{ visit.sede }}</td>
+                            <td>{{ visit.fecha }}</td>
+                            <td>{{ visit.hora_entrada }}</td>
+                            <td>
+                                {% if visit.hora_salida %}
+                                    {{ visit.hora_salida }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'visit_detail' visit_id=visit.id %}" class="btn btn-sm text-white" style="background-color: rgb(39, 48, 92);">Ver</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay visitas recientes</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

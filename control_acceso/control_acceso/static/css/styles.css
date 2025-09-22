@@ -1,0 +1,274 @@
+/* Estilos personalizados para Control de Acceso */
+
+/* Estilos personalizados para Control de Acceso */
+
+/* Colores principales */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    /* Define heights for calculation - **ADJUST THESE EXACTLY** */
+    --navbar-actual-height: 60px; /* Measure this precisely in your browser's dev tools */
+    --footer-actual-height: 70px; /* Measure this precisely in your browser's dev tools */
+}
+
+/* Estilos generales */
+html, body {
+    height: 100vh; /* Make html and body take full viewport height */
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ... (rest of your styles.css remains the same) ... */
+
+/* Estilos generales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+.footer {
+    margin-top: auto;
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 1rem 0;
+    text-align: center;
+}
+
+/* Navegación */
+/* Remove generic 'nav' styles that might conflict with custom navbar */
+/* nav {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+} */
+
+/* Custom Navbar Styles */
+.navbar-custom {
+    background-color: rgb(39, 48, 92) !important; /* Specific background color */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Added box shadow */
+}
+
+/* Ensure navbar brand (logo + text) and nav links are white */
+.navbar-custom .navbar-brand,
+.navbar-custom .navbar-nav .nav-link {
+    color: white !important; /* Force white color for all main navbar text and links */
+}
+
+/* Adjust hover state for navbar links */
+.navbar-custom .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white on hover */
+    color: var(--info-color) !important; /* Change to info color on hover */
+}
+
+/* Specific styling for the brand image */
+.navbar-brand img {
+    margin-right: 10px; /* Space between logo and text */
+}
+
+/* Adjust dropdown toggle color when authenticated, as it's a nav-link */
+.navbar-custom .nav-item.dropdown .nav-link {
+    color: white !important;
+}
+
+.navbar-custom .nav-item.dropdown .nav-link:hover {
+    color: var(--info-color) !important;
+}
+
+/* Navbar styles with stronger specificity */
+.navbar.navbar-custom {
+    background-color: rgb(39, 48, 92) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar.navbar-custom .navbar-brand,
+.navbar.navbar-custom .navbar-nav .nav-link {
+    color: white !important;
+}
+
+.navbar.navbar-custom .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--info-color) !important;
+}
+
+/* General layout improvements */
+html, body {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+    position: relative;
+    min-height: 0;
+}
+
+/* General nav ul and li styles (if not handled by Bootstrap classes) */
+nav ul {
+    list-style: none;
+    padding: 0;
+    /* display: flex; /* Bootstrap's navbar-nav handles this */
+    flex-wrap: wrap;
+}
+
+nav ul li {
+    /* display: inline; /* Bootstrap's nav-item handles this */
+    margin-right: 1em; /* You can keep this or rely on Bootstrap spacing utilities */
+}
+
+/* You can remove or adjust these if Bootstrap's .nav-link is sufficient */
+/* nav ul li a {
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    padding: 0.5em 0.8em;
+    border-radius: 0.25rem;
+} */
+
+
+.content {
+    padding: 2em;
+    flex: 1;
+}
+
+/* Mejoras en las tarjetas */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Botones y elementos interactivos */
+.btn {
+    border-radius: 0.25rem;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+/* Tablas */
+.table {
+    vertical-align: middle;
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+.table th {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Formularios */
+.form-control {
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Efectos de transición */
+.btn, .nav-link, .form-control {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estilos para la página de inicio */
+.home-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+
+    .btn-lg {
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    nav ul {
+        flex-direction: column;
+    }
+
+    nav ul li {
+        margin-bottom: 0.5em;
+    }
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilos para mensajes de alerta */
+.alert {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Estilos para badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+}

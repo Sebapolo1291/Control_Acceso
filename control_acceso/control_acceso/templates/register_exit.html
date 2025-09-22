@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Registrar Salida - Control de Acceso{% endblock %}
+
+{% block content %}
+<h1 class="mb-4 fw-bold" style="color: rgb(39, 48, 92); font-size: 1.76rem;">
+    <i class="bi bi-door-open"></i> Registrar salida
+</h1>
+
+<div class="row">
+    <!-- Columna izquierda: Datos de la visita -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                Datos de la Visita
+            </div>
+            <div class="card-body">
+                <p><strong>Visitante:</strong> {{ visit.person.get_full_name }}</p>
+                <p><strong>DNI:</strong> {{ visit.person.dni }}</p>
+                <p><strong>Fecha:</strong> {{ visit.fecha }}</p>
+                <p><strong>Hora de entrada:</strong> {{ visit.hora_entrada }}</p>
+                <p><strong>Tarjeta:</strong> <span class="badge bg-primary">{{ visit.person.tarjetavisita }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Fotografía -->
+    {% if visit.person.photo %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-camera"></i> Fotografía
+            </div>
+            <div class="card-body text-center">
+                <img src="data:image/png;base64,{{ visit.person.photo|b64encode }}" 
+                     alt="Foto de {{ visit.person.get_full_name }}" 
+                     class="img-fluid img-thumbnail" 
+                     style="max-height: 200px;">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<form method="post" id="exit-form">
+    {% csrf_token %}
+    <p>La hora de salida se registrará como la hora actual del sistema: <strong id="current-time"></strong></p>
+    
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="confirm-checkout" required>
+        <label class="form-check-label" for="confirm-checkout">
+            Confirmo que la tarjeta de visita ha sido devuelta
+        </label>
+    </div>
+    
+    <div class="text-start mt-4">
+        <button type="submit" class="btn text-white me-3" style="background-color: rgb(39, 48, 92);">
+            <i class="bi bi-check-circle me-2"></i>Confirmar salida
+        </button>
+        <a href="{% url 'visit_detail' visit_id=visit.id %}" class="btn text-white" style="background-color: #b23b3b;">
+            <i class="bi bi-x-circle me-2"></i>Cancelar
+        </a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Actualizar la hora actual
+    function updateCurrentTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('current-time').textContent = timeString;
+    }
+    
+    // Actualizar la hora cada segundo
+    setInterval(updateCurrentTime, 1000);
+    updateCurrentTime();
+    
+    // Confirmar antes de enviar el formulario
+    document.getElementById('exit-form').addEventListener('submit', function(e) {
+        if (!document.getElementById('confirm-checkout').checked) {
+            e.preventDefault();
+            alert('Debe confirmar que la tarjeta ha sido devuelta.');
+            return false;
+        }
+        
+        if (!confirm('¿Está seguro de registrar la salida de esta visita?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

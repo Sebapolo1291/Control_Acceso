@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Detalle de Visita - Control de Acceso{% endblock %}
+
+{% block content %}
+<h1 class="mb-4 fw-bold" style="color: rgb(39, 48, 92); font-size: 1.76rem;">
+    <i class="bi bi-file-earmark-text"></i> Detalle de visita #{{ visit.id }}
+</h1>
+<div class="d-flex gap-2 mb-4">
+    <a href="{% url 'visit_list' %}" class="btn text-white" style="background-color: rgb(39, 48, 92)">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    {% if not visit.hora_salida %}
+    <a href="{% url 'register_exit' visit_id=visit.id %}" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-box-arrow-right"></i> Registrar salida
+    </a>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person"></i> Datos del Visitante
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre completo:</strong> {{ visit.person.get_full_name }}</p>
+                <p><strong>DNI:</strong> {{ visit.person.dni }}</p>
+                <p><strong>Teléfono:</strong> {{ visit.person.telefono|default:"No registrado" }}</p>
+                <p><strong>Email:</strong> {{ visit.person.email|default:"No registrado" }}</p>
+                <p><strong>Tarjeta de visita:</strong>
+                    <span class="badge" style="background-color: rgb(39, 48, 92); color: #fff;">
+                        {{ visit.person.tarjetavisita|default:"No asignada" }}
+                    </span>
+                </p>
+                {% if visit.person.observaciones %}
+                <p><strong>Observaciones:</strong> {{ visit.person.observaciones }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-building"></i> Ubicación
+            </div>
+            <div class="card-body">
+                <p><strong>Sede:</strong> {{ visit.sede }}</p>
+                <p><strong>Área:</strong> {{ visit.area }}</p>
+                {% if visit.subarea %}
+                <p><strong>Subárea:</strong> {{ visit.subarea }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-clock"></i> Datos de la Visita
+            </div>
+            <div class="card-body">
+                <p><strong>Estado:</strong>
+                    {% if visit.hora_salida %}
+                        <span class="badge" style="background-color: #b23b3b; color: #fff;">Finalizada</span>
+                    {% else %}
+                        <span class="badge" style="background-color: rgb(39, 48, 92); color: #fff;">Activa</span>
+                    {% endif %}
+                </p>
+                <p><strong>Fecha:</strong> {{ visit.fecha }}</p>
+                <p><strong>Hora de entrada:</strong> {{ visit.hora_entrada }}</p>
+                {% if visit.hora_salida %}
+                <p><strong>Fecha de Salida:</strong> {{ visit.fecha_salida }}</p>
+                <p><strong>Hora de Salida:</strong> {{ visit.hora_salida|time:"H:i" }}</p>
+                {% else %}
+                <p><strong>Hora de salida:</strong> 
+                    <span class="text-warning">Pendiente</span>
+                </p>
+                {% endif %}
+                <p><strong>Receptor:</strong> {{ visit.get_receptor_full_name }}</p>
+                {% if visit.observaciones %}
+                <p><strong>Observaciones:</strong> {{ visit.observaciones }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if visit.person.photo %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-camera"></i> Fotografía
+            </div>
+            <div class="card-body text-center">
+                <img src="data:image/png;base64,{{ visit.person.photo|b64encode }}" 
+                     alt="Foto de {{ visit.person.get_full_name }}" 
+                     class="img-fluid img-thumbnail" 
+                     style="max-height: 200px;">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

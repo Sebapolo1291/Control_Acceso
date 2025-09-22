@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Lista de Visitas</h1>
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Hora de Entrada</th>
+            <th>Acciones</th>
+        </tr>
+        {% for visit in visits %}
+        <tr>
+            <td>{{ visit.nombre }}</td>
+            <td>{{ visit.apellido }}</td>
+            <td>{{ visit.hora_entrada }}</td>
+            <td>
+                <a href="{% url 'checkout_visit' visit.id %}">Dar Salida</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

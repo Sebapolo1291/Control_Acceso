@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Visitas - Control de Acceso{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 mb-3">
+  <div class="d-flex flex-column gap-2 mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-clock-history fs-3" style="color: rgb(39, 48, 92);"></i>
+      <h2 class="mb-0 fw-bold" style="font-size: 2rem; color: rgb(39, 48, 92);">
+        Histórico de visitas
+      </h2>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+      <a href="{% url 'register_visit' %}" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-person-plus"></i> Registrar visita
+      </a>
+      <a href="{% url 'visit_list' %}" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-check-circle"></i> Visitas activas
+      </a>
+      <button class="btn text-white btn-sm" type="button" id="toggleFiltrosBtn" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-funnel"></i> Filtros
+      </button>
+    </div>
+  </div>
+</div>
+<div class="card shadow-sm mb-4" id="filtrosCard">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+  <div class="col-md-2">
+    <label for="fecha_inicio" class="form-label">Fecha desde</label>
+    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+  </div>
+  <div class="col-md-2">
+    <label for="fecha_fin" class="form-label">Fecha hasta</label>
+    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+  </div>
+  <div class="col-md-2">
+    <label for="estado" class="form-label">Estado</label>
+    <select class="form-select select2" id="estado" name="estado" data-placeholder="Seleccionar estado">
+      <option value="" {% if not request.GET.estado %}selected{% endif %}>Todas</option>
+      <option value="activas" {% if request.GET.estado == 'activas' %}selected{% endif %}>Activas</option>
+      <option value="completadas" {% if request.GET.estado == 'completadas' %}selected{% endif %}>Completadas</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="nombre" class="form-label">Nombre</label>
+    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ request.GET.nombre }}">
+  </div>
+  <div class="col-md-2">
+    <label for="apellido" class="form-label">Apellido</label>
+    <input type="text" class="form-control" id="apellido" name="apellido" value="{{ request.GET.apellido }}">
+  </div>
+  <div class="col-md-2">
+    <label for="dni" class="form-label">DNI</label>
+    <input type="text" class="form-control" id="dni" name="dni" value="{{ request.GET.dni }}">
+  </div>
+  <div class="col-md-2">
+    <label for="tarjetavisita" class="form-label">Tarjeta</label>
+    <input type="text" class="form-control" id="tarjetavisita" name="tarjetavisita" value="{{ request.GET.tarjetavisita }}">
+  </div>
+  <div class="col-md-2">
+    <label for="sede" class="form-label">Sede</label>
+    <select class="form-select select2" id="sede" name="sede" data-placeholder="Seleccionar sede">
+      <option value="">Todas</option>
+      {% for s in sedes %}
+        <option value="{{ s.id }}" {% if request.GET.sede == s.id|stringformat:'s' %}selected{% endif %}>{{ s.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="area" class="form-label">Área</label>
+    <select class="form-select select2" id="area" name="area" data-placeholder="Seleccionar área">
+      <option value="">Todas</option>
+      {% for a in areas %}
+        <option value="{{ a.id }}" {% if request.GET.area == a.id|stringformat:'s' %}selected{% endif %}>{{ a.unidad_organica }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="usuario" class="form-label">Usuario</label>
+    <select class="form-select select2" id="usuario" name="usuario" data-placeholder="Seleccionar usuario">
+      <option value="">Todos</option>
+      {% for uid, first, last, username in usuarios %}
+        <option value="{{ uid }}" {% if request.GET.usuario == uid|stringformat:'s' %}selected{% endif %}>{{ first }} {{ last }} ({{ username }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-2 d-flex gap-2 align-items-end">
+    <button type="submit" class="btn text-white w-100" style="background-color: rgb(39, 48, 92);" title="Filtrar"><i class="bi bi-funnel"></i></button>
+    <a href="{% url 'visit_history' %}" class="btn text-white w-100" style="background-color: rgb(39, 48, 92);" title="Quitar filtros">
+    <i class="bi bi-trash"></i>
+</a>
+  </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Persona</th>
+        <th>DNI</th>
+        <th>Entrada</th>
+        <th>Salida</th>
+        <th>Estado</th>
+        <th>Sede</th>
+        <th>Área</th>
+        <th>Foto</th>
+        <th>Usuario</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if visits %}
+        {% for visit in visits %}
+        <tr>
+          <td>{{ visit.id }}</td>
+          <td>{{ visit.person.get_full_name }}</td>
+          <td>{{ visit.person.dni }}</td>
+          <td>{{ visit.fecha|date:"d/m/Y" }} {{ visit.hora_entrada|time:"H:i" }}</td>
+          <td>
+            {% if visit.hora_salida %}
+              {{ visit.fecha_salida|date:"d/m/Y" }} {{ visit.hora_salida|time:"H:i" }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            {% if visit.hora_salida %}
+              <span class="badge bg-success">Completada</span>
+            {% else %}
+              <span class="badge bg-warning">Activa</span>
+            {% endif %}
+          </td>
+          <td>{{ visit.sede }}</td>
+          <td>{{ visit.area }}</td>
+          <td>
+            {% if visit.person.photo %}
+              <img src="{% url 'get_person_photo' visit.person.id %}" alt="Foto" class="img-thumbnail" style="width: 48px; height: 48px; object-fit: cover; border-radius: 5px; border: 1px solid #888;">
+            {% else %}
+              <span class="text-muted">Sin foto</span>
+            {% endif %}
+          </td>
+          <td>{% if visit.created_by %}{{ visit.created_by.get_full_name|default:visit.created_by.username }}{% else %}-{% endif %}</td>
+          <td class="text-nowrap">
+            <a href="{% url 'visit_detail' visit_id=visit.id %}" class="btn btn-sm text-white me-1" style="background-color: rgb(39, 48, 92);" title="Ver">
+        <i class="bi bi-eye" style="color: #fff;"></i>
+    </a>
+    {% if not visit.hora_salida %}
+    <a href="{% url 'register_exit' visit_id=visit.id %}" class="btn btn-sm text-white" style="background-color: rgb(39, 48, 92);" title="Registrar Salida">
+        <i class="bi bi-box-arrow-right" style="color: #fff;"></i>
+    </a>
+    {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="11" class="text-center">No hay visitas que coincidan con los filtros aplicados.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Paginación -->
+{% if visits.has_other_pages %}
+<div class="d-flex justify-content-center mt-4">
+  <nav aria-label="Paginación de visitas">
+    <ul class="pagination">
+      {% if visits.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" style="color: rgb(39, 48, 92);">
+            <i class="bi bi-chevron-double-left"></i>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ visits.previous_page_number }}" style="color: rgb(39, 48, 92);">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+      {% endif %}
+
+      {% for num in visits.paginator.page_range %}
+        {% if visits.number == num %}
+          <li class="page-item active">
+            <span class="page-link" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">{{ num }}</span>
+          </li>
+        {% elif num > visits.number|add:'-3' and num < visits.number|add:'3' %}
+          <li class="page-item">
+            <a class="page-link" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" style="color: rgb(39, 48, 92);">{{ num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if visits.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ visits.next_page_number }}" style="color: rgb(39, 48, 92);">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ visits.paginator.num_pages }}" style="color: rgb(39, 48, 92);">
+            <i class="bi bi-chevron-double-right"></i>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var filtrosCard = document.getElementById('filtrosCard');
+    var toggleBtn = document.getElementById('toggleFiltrosBtn');
+    if (filtrosCard && toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        if (filtrosCard.style.display === 'none') {
+          filtrosCard.style.display = '';
+        } else {
+          filtrosCard.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

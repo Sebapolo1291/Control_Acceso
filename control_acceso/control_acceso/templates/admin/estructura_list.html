@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Gestión de Estructura</h3>
+        <a href="{% url 'estructura_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Estructura
+        </a>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#areas">Áreas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#subareas">Subáreas</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-3">
+            <div id="areas" class="tab-pane active">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Unidad Orgánica</th>
+                                <th>Siglas</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for area in areas %}
+                            <tr>
+                                <td>{{ area.unidad_organica }}</td>
+                                <td>{{ area.siglas }}</td>
+                                <td>{% if area.activo %}Activo{% else %}Inactivo{% endif %}</td>
+                                <td>
+                                    <a href="{% url 'estructura_edit' area.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'estructura_delete' area.id %}" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No hay áreas registradas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="subareas" class="tab-pane">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Unidad Orgánica</th>
+                                <th>Siglas</th>
+                                <th>Área Padre</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subarea in subareas %}
+                            <tr>
+                                <td>{{ subarea.unidad_organica }}</td>
+                                <td>{{ subarea.siglas }}</td>
+                                <td>{{ subarea.padre }}</td>
+                                <td>{% if subarea.activo %}Activo{% else %}Inactivo{% endif %}</td>
+                                <td>
+                                    <a href="{% url 'estructura_edit' subarea.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'estructura_delete' subarea.id %}" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No hay subáreas registradas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

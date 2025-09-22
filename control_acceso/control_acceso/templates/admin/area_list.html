@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Administración de Áreas - Control de Acceso{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Áreas</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Unidad Orgánica</th>
+                <th>Siglas</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for area in areas %}
+            <tr>
+                <td>{{ area.unidad_organica }}</td>
+                <td>{{ area.siglas }}</td>
+                <td>{{ area.activo|yesno:"Activo,Inactivo" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Acceso</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Control de Acceso</h1>
+        <div>
+            <h2>Personas</h2>
+            <ul>
+                <li v-for="person in persons" :key="person.id">
+                    {{ person.nombre }} {{ person.apellido }}
+                </li>
+            </ul>
+            <h2>Visitas</h2>
+            <ul>
+                <li v-for="visit in visits" :key="visit.id">
+                    {{ visit.fecha }} - {{ visit.hora_entrada }}
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                persons: [],
+                visits: [],
+                newPerson: {
+                    nombre: '',
+                    apellido: '',
+                    dni: '',
+                    telefono: '',
+                    email: '',
+                    observaciones: '',
+                    photo: ''
+                },
+                newVisit: {
+                    hora_entrada: '',
+                    fecha: '',
+                    person: '',
+                    user: '',
+                    sede_id: '',
+                    area_id: '',
+                    observaciones: '',
+                    automatico: false,
+                    hora_salida: '',
+                    email: '',
+                    subarea_id: ''
+                }
+            },
+            methods: {
+                getPersons() {
+                    axios.get('/api/persons/')
+                        .then(response => {
+                            this.persons = response.data;
+                        });
+                },
+                getVisits() {
+                    axios.get('/api/visits/')
+                        .then(response => {
+                            this.visits = response.data;
+                        });
+                },
+                addPerson() {
+                    axios.post('/api/persons/', this.newPerson)
+                        .then(response => {
+                            this.getPersons();
+                            this.newPerson = { nombre: '', apellido: '', dni: '', telefono: '', email: '', observaciones: '', photo: '' };
+                        });
+                },
+                addVisit() {
+                    axios.post('/api/visits/', this.newVisit)
+                        .then(response => {
+                            this.getVisits();
+                            this.newVisit = { hora_entrada: '', fecha: '', person: '', user: '', sede_id: '', area_id: '', observaciones: '', automatico: false, hora_salida: '', email: '', subarea_id: '' };
+                        });
+                }
+            },
+            created() {
+                this.getPersons();
+                this.getVisits();
+            }
+        });
+    </script>
+</body>
+</html>

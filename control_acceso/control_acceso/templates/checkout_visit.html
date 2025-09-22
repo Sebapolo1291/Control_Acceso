@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dar Salida</title>
+</head>
+<body>
+    <h1>Dar Salida a {{ visit.nombre }} {{ visit.apellido }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="hora_salida">Hora de Salida:</label>
+        <input type="text" id="hora_salida" name="hora_salida">
+        <button type="submit">Registrar Salida</button>
+    </form>
+</body>
+</html>

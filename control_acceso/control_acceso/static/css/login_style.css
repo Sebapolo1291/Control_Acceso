@@ -1,0 +1,114 @@
+.login-page {
+    font-family: 'Noto Sans', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #0a144d; /* Fondo oscuro */
+    color: #f8f9fa; /* Texto claro para contraste */
+}
+
+.login-container {
+    display: flex;
+    width: 800px;
+    height: 500px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.background-image {
+    width: 400px;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.logo-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.centered-logo {
+    width: 100px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.title {
+    color: #ffffff;
+    font-size: 24px;
+    text-align: center;
+    margin: 0;
+}
+
+.login-form {
+    width: 400px;
+    padding: 40px;
+    background-color: #0e1a5c; /* Fondo oscuro igual al background */
+    color: #ffffff; /* Texto claro para contraste */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 0; /* Eliminar bordes redondeados para consistencia */
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #ffffff;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ffffff;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #0d6efd;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.version p {
+    text-align: center;
+    margin-top: 10px; /* Adjust margin to 10px */
+    color: #ffffff; /* Color del texto */
+    font-size: 12px;
+}
+
+.page-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #0a144d; /* Fondo oscuro */
+    color: #ffffff; /* Texto claro */
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2); /* Sombra superior */
+}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Control de Acceso{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="mb-0">{{ title }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="unidad_organica" class="form-label">Unidad Orgánica</label>
+                <input type="text" class="form-control" id="unidad_organica" name="unidad_organica" 
+                       value="{{ subarea.unidad_organica|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="siglas" class="form-label">Siglas</label>
+                <input type="text" class="form-control" id="siglas" name="siglas" 
+                       value="{{ subarea.siglas|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="padre" class="form-label">Área Padre</label>
+                <select class="form-control" id="padre" name="padre" required>
+                    <option value="">Seleccione un área...</option>
+                    {% for area in areas %}
+                        <option value="{{ area.siglas }}" {% if subarea and subarea.padre == area.siglas %}selected{% endif %}>
+                            {{ area.unidad_organica }} ({{ area.siglas }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="text-end">
+                <a href="{% url 'subarea_list' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

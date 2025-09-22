@@ -1,0 +1,687 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Registrar visita - Control de Acceso{% endblock %}
+
+{% block extra_css %}
+<style>
+    #camera-container {
+        width: 320px;
+        height: 240px;
+        border: 1px solid #ccc;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+    }
+    #camera-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    #camera-canvas {
+        display: none;
+    }
+    .camera-controls {
+        margin-top: 10px;
+        text-align: center;
+    }
+    #photo-preview {
+        max-width: 100%;
+        max-height: 200px;
+        display: none;
+        margin: 10px auto;
+        border: 1px solid #ddd;
+    }
+    #existing-photo {
+        max-width: 100%;
+        max-height: 200px;
+        margin: 10px auto;
+        border: 1px solid #ddd;
+    }
+    #active-visit-alert {
+        display: none;
+    }
+    /* Estilo para los campos de fecha y hora como de solo lectura */
+    .datetime-display {
+        background-color: #f8f9fa;
+        cursor: default;
+    }
+    /* Forzar minúsculas en todos los campos de texto del formulario de visita */
+    #visit-form input[type="text"],
+    #visit-form input[type="email"],
+    #visit-form textarea {
+        text-transform: lowercase;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4" style="color: rgb(39, 48, 92);"><i class="bi bi-person-plus"></i> Registrar visita</h2>
+<div class="card">
+
+    <div class="card-body">
+        <!-- Alerta para visitas activas -->
+        <div id="active-visit-alert" class="alert mb-4" style="background-color: rgb(39, 48, 92); color: #fff; border-color: rgb(39, 48, 92);">
+            <h5><i class="bi bi-exclamation-triangle"></i> Visita activa detectada</h5>
+            <p>Esta persona ya tiene una visita activa en el sistema:</p>
+            <div id="active-visit-details">
+                <li><strong>Sede:</strong> <span id="active-visit-sede"></span></li>
+                <li><strong>Institución:</strong> <span id="active-visit-area"></span></li>
+                <li><strong>Área:</strong> <span id="active-visit-subarea"></span></li>
+                <li><strong>Fecha y hora de entrada:</strong> <span id="active-visit-datetime"></span></li>
+            </div>
+            <div class="mt-2">
+                <a id="view-active-visit-btn" href="#" class="btn text-white me-2" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">
+                    <i class="bi bi-eye"></i> Ver detalles
+                </a>
+                <a id="register-exit-btn" href="#" class="btn text-white" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">
+                    <i class="bi bi-box-arrow-right"></i> Registrar salida
+                </a>
+            </div>
+        </div>
+
+        <form id="visit-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="person_id" id="person_id">
+            {{ person_form.photo_data_url }}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Datos del visitante</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="id_dni" class="form-label fw-bold">Dni</label>
+                                <div class="input-group">
+                                    {{ person_form.dni }}
+                                    <button type="button" id="search-btn" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
+                                </div>
+                                {% if person_form.dni.errors %}
+                                <div class="invalid-feedback d-block">{{ person_form.dni.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_nombre" class="form-label fw-bold">Nombre</label>
+                                    {{ person_form.nombre }}
+                                    {% if person_form.nombre.errors %}
+                                    <div class="invalid-feedback d-block">{{ person_form.nombre.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_apellido" class="form-label fw-bold">Apellido</label>
+                                    {{ person_form.apellido }}
+                                    {% if person_form.apellido.errors %}
+                                    <div class="invalid-feedback d-block">{{ person_form.apellido.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_telefono" class="form-label fw-bold">Teléfono</label>
+                                {{ person_form.telefono }}
+                                {% if person_form.telefono.errors %}
+                                <div class="invalid-feedback d-block">{{ person_form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label fw-bold">Email</label>
+                                {{ person_form.email }}
+                                {% if person_form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ person_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_tarjetavisita" class="form-label fw-bold">Tarjeta de visita</label>
+                                {{ person_form.tarjetavisita }}
+                                {% if person_form.tarjetavisita.errors %}
+                                <div class="invalid-feedback d-block">{{ person_form.tarjetavisita.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_observaciones" class="form-label fw-bold">Observaciones</label>
+                                {{ person_form.observaciones }}
+                                {% if person_form.observaciones.errors %}
+                                <div class="invalid-feedback d-block">{{ person_form.observaciones.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Datos de la visita</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_fecha" class="form-label fw-bold">Fecha actual</label>
+                                    <div class="input-group">
+                                        {{ visit_form.fecha }}
+                                        <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                                    </div>
+                                    {% if visit_form.fecha.errors %}
+                                    <div class="invalid-feedback d-block">{{ visit_form.fecha.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_hora_entrada" class="form-label fw-bold">Hora actual</label>
+                                    <div class="input-group">
+                                        {{ visit_form.hora_entrada }}
+                                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                    </div>
+                                    {% if visit_form.hora_entrada.errors %}
+                                    <div class="invalid-feedback d-block">{{ visit_form.hora_entrada.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_sede" class="form-label fw-bold">Sede</label>
+                                {{ visit_form.sede }}
+                                {% if visit_form.sede.errors %}
+                                <div class="invalid-feedback d-block">{{ visit_form.sede.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_area" class="form-label fw-bold">Área</label>
+                                {{ visit_form.area }}
+                                {% if visit_form.area.errors %}
+                                <div class="invalid-feedback d-block">{{ visit_form.area.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_receptor_nombre" class="form-label fw-bold">Nombre del receptor</label>
+                                    {{ visit_form.receptor_nombre }}
+                                    {% if visit_form.receptor_nombre.errors %}
+                                    <div class="invalid-feedback d-block">{{ visit_form.receptor_nombre.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_receptor_apellido" class="form-label fw-bold">Apellido del receptor</label>
+                                    {{ visit_form.receptor_apellido }}
+                                    {% if visit_form.receptor_apellido.errors %}
+                                    <div class="invalid-feedback d-block">{{ visit_form.receptor_apellido.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_observaciones" class="form-label fw-bold">Observaciones</label>
+                                {{ visit_form.observaciones }}
+                                {% if visit_form.observaciones.errors %}
+                                <div class="invalid-feedback d-block">{{ visit_form.observaciones.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-camera"></i> Fotografía</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Foto existente (se mostrará si existe) -->
+                            <div id="existing-photo-container" style="display: none;">
+                                <img id="existing-photo" class="img-fluid" alt="Foto existente">
+                                <div class="text-center mt-2">
+                                    <button type="button" id="use-existing-photo-btn" class="btn text-white me-2" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">
+                                        <i class="bi bi-check-circle"></i> Usar esta foto
+                                    </button>
+                                    <button type="button" id="take-new-photo-btn" class="btn text-white" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">
+                                        <i class="bi bi-camera"></i> Tomar nueva foto
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Cámara para tomar nueva foto -->
+                            <div id="camera-section">
+                                <div id="camera-container">
+                                    <video id="camera-video" autoplay playsinline></video>
+                                    <canvas id="camera-canvas"></canvas>
+                                </div>
+                                <img id="photo-preview" class="img-fluid" alt="Vista previa de la foto">
+                                <div class="camera-controls mt-3">
+                                    <button type="button" id="capture-btn" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+                                        <i class="bi bi-camera"></i> Capturar Foto
+                                    </button>
+                                    <button type="button" id="retake-btn" class="btn btn-secondary" style="display:none;">
+                                        <i class="bi bi-arrow-repeat"></i> Volver a tomar
+                                    </button>
+                                </div>
+                                <div class="alert mt-3" style="background-color: rgb(39, 48, 92); color: #fff;">
+                                    <small><i class="bi bi-info-circle"></i> La foto se guardará junto con los datos de la persona.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-start mt-4">
+                <button type="submit" id="submit-btn" class="btn btn-lg text-white me-3" style="background-color: rgb(39, 48, 92);">
+                    <i class="bi bi-check-circle me-2"></i>Registrar
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-lg text-white" style="background-color: #b23b3b;">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(function() {
+        // Forzar mayúsculas en todos los campos de texto del formulario de visita (también al pegar)
+        $('#visit-form').on('input', 'input[type="text"], input[type="email"], textarea', function() {
+            if (this.value !== this.value.toUpperCase()) {
+                this.value = this.value.toUpperCase();
+            }
+        });
+
+        // Permitir solo números en teléfono y tarjeta de visita
+        $('#id_telefono, #id_tarjetavisita').on('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        // Inicializar select2 solo para el campo de área, sin tocar el resto de scripts
+        setTimeout(function() {
+            if ($('#id_area').length) {
+                $('#id_area').select2({
+                    width: '100%',
+                    placeholder: 'Seleccione un área',
+                    allowClear: true,
+                    language: {
+                        noResults: function() {
+                            return "No se encontraron resultados";
+                        }
+                    }
+                });
+            }
+        }, 0);
+        // --- INICIO: Scripts originales que deben ejecutarse después de Select2 ---
+        // Función para verificar disponibilidad de tarjeta de visita
+        function checkTarjetaVisitaAvailability() {
+            const tarjetaVisita = $('#id_tarjetavisita').val();
+            const sedeId = $('#id_sede').val();
+            
+            if (tarjetaVisita && sedeId) {
+                $.ajax({
+                    url: '{% url "check_tarjeta_disponible" %}',
+                    data: {
+                        'tarjeta': tarjetaVisita,
+                        'sede_id': sedeId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (!data.available) {
+                            Swal.fire({
+                                title: 'Tarjeta no disponible',
+                                html: data.message,
+                                icon: 'warning',
+                                confirmButtonText: 'Entendido'
+                            });
+                            $('#id_tarjetavisita').val('');
+                        }
+                    }
+                });
+            }
+        }
+        $('#id_tarjetavisita').on('blur', checkTarjetaVisitaAvailability);
+        $('#id_sede').on('change', function() {
+            if ($('#id_tarjetavisita').val()) {
+                checkTarjetaVisitaAvailability();
+            }
+        });
+
+        // Variables para la cámara
+        const video = document.getElementById('camera-video');
+        const canvas = document.getElementById('camera-canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const photoPreview = document.getElementById('photo-preview');
+        const photoDataInput = document.getElementById('id_photo_data_url');
+        const existingPhotoContainer = document.getElementById('existing-photo-container');
+        const existingPhoto = document.getElementById('existing-photo');
+        const useExistingPhotoBtn = document.getElementById('use-existing-photo-btn');
+        const takeNewPhotoBtn = document.getElementById('take-new-photo-btn');
+        const cameraSection = document.getElementById('camera-section');
+
+        // Variables para los campos de fecha y hora
+        const fechaInput = document.getElementById('id_fecha');
+        const horaInput = document.getElementById('id_hora_entrada');
+
+        // Variables para visita activa
+        const activeVisitAlert = document.getElementById('active-visit-alert');
+        const activeVisitSede = document.getElementById('active-visit-sede');
+        const activeVisitArea = document.getElementById('active-visit-area');
+        const activeVisitDatetime = document.getElementById('active-visit-datetime');
+        const viewActiveVisitBtn = document.getElementById('view-active-visit-btn');
+        const registerExitBtn = document.getElementById('register-exit-btn');
+        const submitBtn = document.getElementById('submit-btn');
+
+        let stream = null;
+        let usingExistingPhoto = false;
+
+        // Función para actualizar la fecha y hora actual
+        function updateCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const formattedTime = `${hours}:${minutes}`;
+            fechaInput.value = formattedDate;
+            horaInput.value = formattedTime;
+        }
+        fechaInput.readOnly = true;
+        horaInput.readOnly = true;
+        fechaInput.classList.add('datetime-display');
+        horaInput.classList.add('datetime-display');
+        updateCurrentDateTime();
+        setInterval(updateCurrentDateTime, 60000);
+
+        // Función para iniciar la cámara
+        function startCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(videoStream) {
+                        stream = videoStream;
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(function(error) {
+                        console.error("Error al acceder a la cámara: ", error);
+                        alert("No se pudo acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado permiso para usarla.");
+                    });
+            } else {
+                alert("Su navegador no soporta la captura de video. Por favor, use un navegador más moderno.");
+            }
+        }
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                stream = null;
+            }
+        }
+        startCamera();
+
+        // Capturar foto
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            photoDataInput.value = dataURL;
+            photoPreview.src = dataURL;
+            photoPreview.style.display = 'block';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-block';
+        });
+        retakeBtn.addEventListener('click', function() {
+            photoPreview.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+            photoDataInput.value = '';
+        });
+        useExistingPhotoBtn.addEventListener('click', function() {
+            usingExistingPhoto = true;
+            existingPhotoContainer.style.display = 'block';
+            cameraSection.style.display = 'none';
+            stopCamera();
+        });
+        takeNewPhotoBtn.addEventListener('click', function() {
+            usingExistingPhoto = false;
+            existingPhotoContainer.style.display = 'none';
+            cameraSection.style.display = 'block';
+            startCamera();
+        });
+
+        // Buscar persona por DNI
+        function searchPersonByDNI(dni) {
+            if (dni) {
+                showLoading('Buscando persona...');
+                $.ajax({
+                    url: '{% url "search_person" %}',
+                    data: { 'dni': dni },
+                    dataType: 'json',
+                    success: function(data) {
+                        Swal.close();
+                        if (!data.found) {
+                            photoDataInput.value = '';
+                            existingPhoto.src = '';
+                            existingPhotoContainer.style.display = 'none';
+                            cameraSection.style.display = 'block';
+                            startCamera();
+                            usingExistingPhoto = false;
+                            photoPreview.style.display = 'none';
+                            captureBtn.style.display = 'inline-block';
+                            retakeBtn.style.display = 'none';
+                        }
+                        if (data.found) {
+                            $('#person_id').val(data.id);
+                            $('#id_nombre').val(data.nombre);
+                            $('#id_apellido').val(data.apellido);
+                            $('#id_telefono').val(data.telefono);
+                            $('#id_email').val(data.email);
+                            if (data.has_active_visit) {
+                                const mensajeVisitaActiva = `
+                                    <div class="text-left">
+                                        <p class="mb-2">El visitante <strong>${data.nombre} ${data.apellido}</strong> tiene una visita sin registrar salida:</p>
+                                        <ul class="list-unstyled">
+                                            <li><strong>Sede:</strong> ${data.active_visit_sede}</li>
+                                            <li><strong>Área:</strong> ${data.active_visit_area}</li>
+                                            <li><strong>Fecha y hora de ingreso:</strong> ${data.active_visit_fecha} ${data.active_visit_hora_entrada}</li>
+                                            <li><strong>Tarjeta:</strong> #${data.tarjetavisita || 'No asignada'}</li>
+                                        </ul>
+                                        <div class="mt-3">
+                                            <p class="text-warning">Debe registrar la salida antes de crear una nueva visita.</p>
+                                            <a href="/visitas/${data.active_visit_id}/salida/" class="btn text-white" style="background-color: rgb(39, 48, 92); border-color: rgb(39, 48, 92);">
+                                                <i class="bi bi-box-arrow-right"></i> Registrar Salida
+                                            </a>
+                                        </div>
+                                    </div>`;
+                                Swal.fire({
+                                    title: 'Visita Activa Detectada',
+                                    html: mensajeVisitaActiva,
+                                    icon: 'warning',
+                                    confirmButtonText: 'Entendido'
+                                });
+                                activeVisitAlert.style.display = 'block';
+                                activeVisitSede.textContent = data.active_visit_sede;
+                                activeVisitArea.textContent = data.active_visit_area;
+                                activeVisitDatetime.textContent = data.active_visit_fecha + ' ' + data.active_visit_hora_entrada;
+                                viewActiveVisitBtn.href = '/visitas/' + data.active_visit_id + '/';
+                                registerExitBtn.href = '/visitas/' + data.active_visit_id + '/salida/';
+                                submitBtn.disabled = true;
+                            } else {
+                                activeVisitAlert.style.display = 'none';
+                                submitBtn.disabled = false;
+                            }
+                            if (data.has_photo) {
+                                $.ajax({
+                                    url: '/api/get-person-photo/',
+                                    data: { 'person_id': data.id },
+                                    dataType: 'json',
+                                    success: function(photoData) {
+                                        if (photoData.photo) {
+                                            const photoDataURL = 'data:image/png;base64,' + photoData.photo;
+                                            existingPhoto.src = photoDataURL;
+                                            photoDataInput.value = photoDataURL;
+                                            existingPhotoContainer.style.display = 'block';
+                                            cameraSection.style.display = 'none';
+                                            stopCamera();
+                                            usingExistingPhoto = true;
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        existingPhotoContainer.style.display = 'none';
+                                        cameraSection.style.display = 'block';
+                                        startCamera();
+                                        usingExistingPhoto = false;
+                                    }
+                                });
+                            } else {
+                                existingPhotoContainer.style.display = 'none';
+                                cameraSection.style.display = 'block';
+                                startCamera();
+                                usingExistingPhoto = false;
+                            }
+                            Swal.fire({
+                                title: 'Persona encontrada',
+                                text: 'Los datos han sido cargados correctamente',
+                                icon: 'success',
+                                confirmButtonText: 'Continuar'
+                            });
+                        } else {
+                            $('#person_id').val('');
+                            $('#id_nombre, #id_apellido, #id_telefono, #id_email, #id_tarjetavisita, #id_observaciones').val('');
+                            activeVisitAlert.style.display = 'none';
+                            submitBtn.disabled = false;
+                            existingPhotoContainer.style.display = 'none';
+                            cameraSection.style.display = 'block';
+                            startCamera();
+                            usingExistingPhoto = false;
+                            updateCurrentDateTime();
+                            Swal.fire({
+                                title: 'Persona no encontrada',
+                                text: 'Por favor complete los datos del visitante',
+                                icon: 'info',
+                                confirmButtonText: 'Entendido'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        photoDataInput.value = '';
+                        existingPhoto.src = '';
+                        existingPhotoContainer.style.display = 'none';
+                        cameraSection.style.display = 'block';
+                        startCamera();
+                        usingExistingPhoto = false;
+                        photoPreview.style.display = 'none';
+                        captureBtn.style.display = 'inline-block';
+                        retakeBtn.style.display = 'none';
+                        Swal.close();
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ocurrió un error al buscar la persona. Por favor intente nuevamente.',
+                            icon: 'error',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Campo requerido',
+                    text: 'Por favor ingrese un DNI para buscar',
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+        $('#search-btn').click(function() {
+            const dni = $('#id_dni').val().trim();
+            searchPersonByDNI(dni);
+        });
+        $('#id_dni').keypress(function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                const dni = $(this).val().trim();
+                searchPersonByDNI(dni);
+            }
+        });
+        $('#id_dni').blur(function() {
+            const dni = $(this).val().trim();
+            if (dni) {
+                searchPersonByDNI(dni);
+            }
+        });
+        $('#visit-form').submit(function(e) {
+            e.preventDefault();
+            updateCurrentDateTime();
+            const dni = $('#id_dni').val();
+            const nombre = $('#id_nombre').val();
+            const apellido = $('#id_apellido').val();
+            if (!dni || !nombre || !apellido) {
+                Swal.fire({
+                    title: 'Campos incompletos',
+                    text: 'Por favor complete los campos obligatorios: DNI, Nombre y Apellido',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                return false;
+            }
+            if (!usingExistingPhoto && !photoDataInput.value) {
+                Swal.fire({
+                    title: 'Sin fotografía',
+                    text: 'Para continuar, es necesario tomar una foto. Por favor, haga click en el botón "Tomar Foto" para capturar una imagen.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Entendido'
+                }).then(() => {
+                    $('html, body').animate({
+                        scrollTop: $("#camera-section").offset().top - 100
+                    }, 500);
+                });
+            } else {
+                showLoading('Registrando visita...');
+                document.getElementById('visit-form').submit();
+            }
+        });
+        $(window).on('beforeunload', function() {
+            stopCamera();
+        });
+        function showLoading(message = 'Procesando...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+        $('#search-btn').on('click', function() {
+            if ($('#id_dni').val()) {
+                showLoading('Buscando persona...');
+            }
+        });
+        $('#id_dni').on('input', function() {
+            photoDataInput.value = '';
+            existingPhoto.src = '';
+            existingPhotoContainer.style.display = 'none';
+            cameraSection.style.display = 'block';
+            startCamera();
+            usingExistingPhoto = false;
+            photoPreview.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+        });
+        // --- FIN: Scripts originales ---
+    });
+</script>
+{% endblock %}

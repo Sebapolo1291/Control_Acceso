@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Editar Persona{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h1 class="mb-4 fw-bold" style="color: rgb(39, 48, 92); font-size: 1.68rem;">
+        <i class="bi bi-pencil-square"></i> Editar persona
+      </h1>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-3 text-center mb-3">
+            {% if person.photo %}
+              <img src="data:image/jpeg;base64,{{ person.photo|b64encode }}" alt="Foto actual" class="rounded-circle mb-2" style="width: 96px; height: 96px; object-fit: cover;">
+            {% else %}
+              <span class="text-muted"><i class="bi bi-person-circle" style="font-size: 5rem;"></i></span>
+            {% endif %}
+            <label for="id_photo_data_url" class="form-label fw-bold mt-2">Nueva foto (opcional)</label>
+            <input type="file" class="form-control" id="id_photo_data_url" name="photo_data_url" accept="image/*">
+          </div>
+          <div class="col-md-9">
+            {{ form.non_field_errors }}
+            {{ form.dni.errors }}
+            <div class="mb-3">
+              <label for="{{ form.dni.id_for_label }}" class="form-label fw-bold">{{ form.dni.label }}</label>
+              {{ form.dni }}
+            </div>
+            {{ form.nombre.errors }}
+            <div class="mb-3">
+              <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">{{ form.nombre.label }}</label>
+              {{ form.nombre }}
+            </div>
+            {{ form.apellido.errors }}
+            <div class="mb-3">
+              <label for="{{ form.apellido.id_for_label }}" class="form-label fw-bold">{{ form.apellido.label }}</label>
+              {{ form.apellido }}
+            </div>
+            {{ form.telefono.errors }}
+            <div class="mb-3">
+              <label for="{{ form.telefono.id_for_label }}" class="form-label fw-bold">{{ form.telefono.label }}</label>
+              {{ form.telefono }}
+            </div>
+            {{ form.email.errors }}
+            <div class="mb-3">
+              <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">{{ form.email.label }}</label>
+              {{ form.email }}
+            </div>
+            {{ form.tarjetavisita.errors }}
+            <div class="mb-3">
+              <label for="{{ form.tarjetavisita.id_for_label }}" class="form-label fw-bold">{{ form.tarjetavisita.label }}</label>
+              {{ form.tarjetavisita }}
+            </div>
+            {{ form.observaciones.errors }}
+            <div class="mb-3">
+              <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-bold">{{ form.observaciones.label }}</label>
+              {{ form.observaciones }}
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn text-white" style="background-color: rgb(39, 48, 92);">
+          <i class="bi bi-save"></i> Guardar
+        </button>
+        <a href="{% url 'person_detail' person.id %}" class="btn text-white" style="background-color: #b23b3b;">
+          Cancelar
+        </a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

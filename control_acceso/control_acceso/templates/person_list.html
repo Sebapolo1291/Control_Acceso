@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Personas Registradas - Control de Acceso{% endblock %}
+{% block content %}
+
+<div class="container-fluid px-0 mb-3">
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-check-circle fs-3" style="color: rgb(39, 48, 92);"></i>
+      <h2 class="mb-0 fw-bold" style="font-size: 2rem; color: rgb(39, 48, 92);">Personas registradas</h2>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn text-white btn-sm" type="button" id="toggleFiltrosBtn" style="background-color: rgb(39, 48, 92);">
+        <i class="bi bi-funnel"></i> Filtros
+      </button>
+    </div>
+  </div>
+</div>
+<div class="card shadow-sm mb-4" id="filtrosCard">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" value="{{ filtros.nombre }}">
+      </div>
+      <div class="col-md-3">
+        <label for="apellido" class="form-label">Apellido</label>
+        <input type="text" class="form-control" id="apellido" name="apellido" value="{{ filtros.apellido }}">
+      </div>
+      <div class="col-md-2">
+        <label for="dni" class="form-label">DNI</label>
+        <input type="text" class="form-control" id="dni" name="dni" value="{{ filtros.dni }}">
+      </div>
+      <div class="col-md-2">
+        <label for="tarjetavisita" class="form-label">Tarjeta</label>
+        <input type="text" class="form-control" id="tarjetavisita" name="tarjetavisita" value="{{ filtros.tarjetavisita }}">
+      </div>
+      <div class="col-md-2 d-flex gap-2 align-items-end">
+        <button type="submit" class="btn text-white w-100" style="background-color: rgb(39, 48, 92);" title="Filtrar">
+          <i class="bi bi-funnel"></i>
+        </button>
+        <a href="?" class="btn text-white w-100" style="background-color: rgb(39, 48, 92);" title="Quitar filtros">
+          <i class="bi bi-trash"></i>
+        </a>
+      </div>
+    </form>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var filtrosCard = document.getElementById('filtrosCard');
+        var toggleBtn = document.getElementById('toggleFiltrosBtn');
+        if (filtrosCard && toggleBtn) {
+          toggleBtn.addEventListener('click', function() {
+            if (filtrosCard.style.display === 'none') {
+              filtrosCard.style.display = '';
+            } else {
+              filtrosCard.style.display = 'none';
+            }
+          });
+        }
+      });
+    </script>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Foto</th>
+        <th>Apellido</th>
+        <th>Nombre</th>
+        <th>DNI</th>
+        <th>Teléfono</th>
+        <th>Email</th>
+        <th>Tarjeta</th>
+        <th>Observaciones</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in persons %}
+      <tr>
+        <td>
+          {% if person.photo %}
+            <img src="data:image/jpeg;base64,{{ person.photo|b64encode }}" alt="Foto" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
+          {% else %}
+            <span class="text-muted"><i class="bi bi-person-circle" style="font-size: 2rem;"></i></span>
+          {% endif %}
+        </td>
+        <td>{{ person.apellido }}</td>
+        <td>{{ person.nombre }}</td>
+        <td>{{ person.dni }}</td>
+        <td>{{ person.telefono }}</td>
+        <td>{{ person.email }}</td>
+        <td>{{ person.tarjetavisita }}</td>
+        <td>{{ person.observaciones }}</td>
+        <td>
+          <div class="d-flex gap-2">
+            <a href="{% url 'person_detail' person.id %}" class="btn btn-sm text-white" style="background-color: rgb(39, 48, 92);" title="Ver Detalle">
+              <i class="bi bi-eye"></i>
+            </a>
+            <a href="{% url 'person_edit' person.id %}" class="btn btn-sm text-white" style="background-color: rgb(39, 48, 92);" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9">No se encontraron personas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<nav>
+  <ul class="pagination">
+    {% if persons.has_previous %}
+      <li class="page-item"><a class="page-link" href="?{% if filtros.nombre %}nombre={{ filtros.nombre }}&{% endif %}{% if filtros.apellido %}apellido={{ filtros.apellido }}&{% endif %}{% if filtros.dni %}dni={{ filtros.dni }}&{% endif %}{% if filtros.tarjetavisita %}tarjetavisita={{ filtros.tarjetavisita }}&{% endif %}page={{ persons.previous_page_number }}">Anterior</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Página {{ persons.number }} de {{ persons.paginator.num_pages }}</span></li>
+    {% if persons.has_next %}
+      <li class="page-item"><a class="page-link" href="?{% if filtros.nombre %}nombre={{ filtros.nombre }}&{% endif %}{% if filtros.apellido %}apellido={{ filtros.apellido }}&{% endif %}{% if filtros.dni %}dni={{ filtros.dni }}&{% endif %}{% if filtros.tarjetavisita %}tarjetavisita={{ filtros.tarjetavisita }}&{% endif %}page={{ persons.next_page_number }}">Siguiente</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endblock %}

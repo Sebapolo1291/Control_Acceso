@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Control de Acceso{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Estilos personalizados para SweetAlert2 */
+        .swal2-confirm {
+            background-color: rgb(39, 48, 92) !important;
+            border-color: rgb(39, 48, 92) !important;
+        }
+        .swal2-confirm:hover {
+            background-color: rgb(29, 38, 82) !important;
+            border-color: rgb(29, 38, 82) !important;
+        }
+        .swal2-confirm:focus {
+            box-shadow: 0 0 0 0.2rem rgba(39, 48, 92, 0.25) !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom" style="background-color: rgb(39, 48, 92) !important;">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}" style="padding-left: 15px;">
+            <img src="{% static 'logo.png' %}" alt="Control de Acceso" style="height: 50px;">
+            Control de Acceso
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto ms-4">
+                <li class="nav-item">
+                    <a class="nav-link fw-bold {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                        <i class=""></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold {% if request.resolver_match.url_name == 'register_visit' %}active{% endif %}" href="{% url 'register_visit' %}">
+                        <i class=""></i> Registrar Visita
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link fw-bold {% if request.resolver_match.url_name == 'visit_list' %}active{% endif %}" href="{% url 'visit_list' %}">
+                        <i class=""></i> Visitas Activas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold {% if request.resolver_match.url_name == 'visit_history' %}active{% endif %}" href="{% url 'visit_history' %}">
+                        <i class=""></i> Histórico de Visitas
+                    </a>
+                </li>
+                {% if user.is_superuser or user.profile.is_admin %}
+                <li class="nav-item ms-3">
+                    <a class="nav-link fw-bold {% if request.resolver_match.url_name == 'person_list' %}active{% endif %}" href="{% url 'person_list' %}">
+                        <i class=""></i> Personas
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><span class="dropdown-item-text">{{ user.get_full_name }}</span></li>
+                        {% if user.is_superuser or user.profile.is_admin %}
+                        <li><a class="dropdown-item" href="{% url 'admin:index' %}">Panel de Administración</a></li>
+                        <li><a class="dropdown-item" href="{% url 'informe_visitas' %}"><i class="bi bi-clipboard-data"></i> Informe de Visitas</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endif %}
+
+
+    <main class="flex-grow-1 d-flex flex-column position-relative overflow-hidden">
+        <div class="container mt-4 mb-5 flex-grow-1 d-flex flex-column position-relative">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %} {# This is where your template-specific content goes #}
+        </div>
+    </main>
+
+    {# Footer remains here, outside the content block #}
+
+    {% if not pdf_export %}
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">Control de Acceso - Desarrollado por Sebastian D' Agostino, Lucas Gomez, Armando Ramirez, Daniel Dziektierow © {% now "Y" %} Todos los derechos reservados</span>
+        </div>
+    </footer>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        // Control de inactividad
+        var inactivityTime = function () {
+            var time;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            document.onscroll = resetTimer;
+            document.onclick = resetTimer;
+
+            function logout() {
+                window.location.href = "{% url 'logout' %}";
+            }
+
+            function resetTimer() {
+                clearTimeout(time);
+                time = setTimeout(logout, 1200000); // 20 minutos en milisegundos
+            }
+        };
+
+        // Iniciar control de inactividad
+        inactivityTime();
+
+        // Cerrar sesión al cerrar la ventana/pestaña
+        window.addEventListener('beforeunload', function() {
+            $.ajax({
+                url: "{% url 'logout' %}",
+                async: false
+            });
+        });
+    </script>
+    {% block extra_js %}
+<script>
+    // Configuración global para SweetAlert2 para el color del botón "Entendido"
+    if (window.Swal) {
+        Swal.mixin({
+            confirmButtonColor: 'rgb(39, 48, 92)',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    // Configuración global de Select2
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: function(){
+                return $(this).data('placeholder') || 'Seleccionar...';
+            },
+            allowClear: true
+        });
+    });
+</script>
+    {% endblock %}
+</body>
+</html>

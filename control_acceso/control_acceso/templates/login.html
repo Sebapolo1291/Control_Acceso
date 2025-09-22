@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Control de Acceso</title>
+    <link rel="stylesheet" href="{% static 'css/login_style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="login-page" style="background-color: #f5f6fa;">
+    <div class="background-image-wrapper"></div> <!-- Contenedor para la imagen con blur -->
+    <div class="login-container">
+        <div class="background-image" style="background-image: url('{% static 'acceso.jpg' %}');">
+            <div class="logo-title-container">
+                <img src="{% static 'logo.png' %}" alt="Logo" class="centered-logo">
+                <h1 class="title" style="background-color: rgb(39, 48, 92); color: #fff; border-radius: 5px; padding: 10px 20px;">Control de Acceso</h1>
+            </div>
+        </div>
+
+        <div class="login-form">
+            <h2>Ingrese sus Credenciales</h2>
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Mostrar errores generales del formulario -->
+                {% if messages %}
+                    <div class="alert-danger mt-3">
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Campos del formulario con validación de errores -->
+                <div class="input-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+
+                <button type="submit" id="login-btn" class="btn text-black" style="background-color: #3bb3ea; color: #000;" disabled>Ingresar</button>
+
+                <div class="version" style="margin-top: 50px;">
+                    <p>Versión 1.0.1</p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer class="page-footer" style="background-color: #f5f6fa; color: #000; box-shadow: none;">
+<span class="text-muted">Control de Acceso - Desarrollado por Sebastian D' Agostino, Lucas Gomez, Armando Ramirez, Daniel Dziektierow © {% now "Y" %} Todos los derechos reservados</span>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
+
+            function toggleButton() {
+                if (username.value.trim() && password.value.trim()) {
+                    loginBtn.disabled = false;
+                    loginBtn.style.backgroundColor = '#3bb3ea';
+                    loginBtn.style.opacity = '1';
+                } else {
+                    loginBtn.disabled = true;
+                    loginBtn.style.backgroundColor = '#bfc3c9';
+                    loginBtn.style.opacity = '1';
+                }
+            }
+
+            username.addEventListener('input', toggleButton);
+            password.addEventListener('input', toggleButton);
+
+            // Inicializa el estado al cargar
+            toggleButton();
+        });
+    </script>
+</body>
+</html>
+
